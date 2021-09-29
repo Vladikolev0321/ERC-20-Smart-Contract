@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.5;
 
-contract BntLikeToken {
+
+ contract ADXLike {
     string public name;
     string public symbol;
     //uint8 public decimals;
@@ -9,8 +9,24 @@ contract BntLikeToken {
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
     event Transfer(address indexed from, address indexed to, uint tokens);
 
-
     uint256 private _totalSupply;
+    string public startDate = "30th June";
+    string public endDate = "30th July";
+    uint256 public hardcapEth = 400000;
+    string firstWeekEnd = "37th June";
+    uint256 public constant endDays = 30;
+    //uint256 totalEth
+    
+     // Token Distribution
+    uint256 public tokenSalePercentage = 80;
+    uint256 public foundersPercentage = 10;
+    uint256 public wingsDaoPercentage = 2;
+    uint256 public bountyPercentage = 2;
+    
+    
+    uint256 public creationTime;
+    
+    
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
@@ -18,13 +34,21 @@ contract BntLikeToken {
     
     using SafeMath for uint256;
     
-    constructor() public {
-        name = "Bancor";
-        symbol = "BNT";
+    constructor()  {
+        name = "ADXLike";
+        symbol = "ADX";
         //decimals = 18;
-        _totalSupply = 232000000;
+        _totalSupply = 139000000;
+        creationTime = block.timestamp;
+        
 
        balances[msg.sender] = _totalSupply;
+    }
+    
+    
+    function buyADX(uint256 amount) public{
+        uint256 modifiedAmount = getBonusesByDay(amount);
+        transfer(msg.sender, modifiedAmount);
     }
     
     
@@ -86,6 +110,26 @@ contract BntLikeToken {
         return true;
     }
     
+    function compareDates() private view returns (uint256){
+        // uint startDate = 1514764800; // 2018-01-01 00:00:00
+        // uint endDate = 1518220800; // 2018-02-10 00:00:00
+        
+        uint256 currentTime = block.timestamp;
+        uint256 diff = (currentTime - creationTime) / 60 / 60 / 24; 
+        return diff;
+    }
+    
+    function getBonusesByDay(uint256 amount) private view returns (uint256){
+        uint256 dayDiff = compareDates();
+        if(dayDiff == 1){
+            return amount + amount * 30 / 100;
+        }else if(dayDiff > 1 && dayDiff < 7){
+            return amount + amount * 15 / 100;
+        }else{
+            return amount;
+        }
+    }
+    
     
 }
 
@@ -102,3 +146,5 @@ library SafeMath{
     }
     
 }
+
+
