@@ -2,6 +2,9 @@ pragma solidity ^0.8.5;
 
 
  contract ADXLike {
+     
+    address payable owner = payable(address(this));
+     
     string public name;
     string public symbol;
     //uint8 public decimals;
@@ -13,6 +16,7 @@ pragma solidity ^0.8.5;
     string public startDate = "30th June";
     string public endDate = "30th July";
     uint256 public hardcapEth = 400000;
+    uint256 public currentEth = 0;
     string firstWeekEnd = "37th June";
     uint256 public constant endDays = 30;
     //uint256 totalEth
@@ -45,19 +49,31 @@ pragma solidity ^0.8.5;
        balances[msg.sender] = _totalSupply;
     }
     
+    function getCurrentTime() public view returns (uint256){ return block.timestamp; }
     
-    function buyADX(uint256 amount) public{
-        uint256 modifiedAmount = getBonusesByDay(amount);
-        transfer(msg.sender, modifiedAmount);
+    function buyADX() public payable returns(bool){
+        //uint256 modifiedAmount = getBonusesByDay(convertEthToAdx(amount));
+        //owner.transfer(msg.value);
+        currentEth = currentEth.add(msg.value);
+        
+        uint tokens = getBonusesByDay(convertEthToAdx(msg.value));
+        ////
+        transferFromContract(msg.sender, tokens);
+        return true;
+    }
+    
+    function transferFromContract(address _to, uint amountTokens) private returns (bool){
+        _totalSupply = _totalSupply.subtract(amountTokens);
+        balances[_to] = balances[_to].add(amountTokens);
+        emit Transfer(address(this), _to, amountTokens);
+        return true;
     }
     
     
-    /*This function returns the total amount of tokens that exist in the Ethereum network at the moment.*/
     function totalSupply() public view returns (uint) {
         return _totalSupply;
     }
 
-    /*This function returns the account balance of the token owner's account. It takes the address of the owner as a function parameter.*/
     function balanceOf(address tokenOwner) public view returns (uint balance){
         return balances[tokenOwner];
     }
@@ -75,11 +91,11 @@ pragma solidity ^0.8.5;
     It takes the recepient address and the amount of tokens as function parameters.
     The function returns a boolean value which indicates the success or failure of the transaction.
     */
-    function transfer(address receiver, uint tokens) public returns (bool success) {
-        require(tokens <= balances[msg.sender]);
-        balances[msg.sender] = balances[msg.sender].subtract(tokens);
-        balances[receiver] = balances[receiver].add(tokens);
-        emit Transfer(msg.sender, receiver, tokens);
+    function transfer(address receiver, uint amountTokens) public  returns (bool success) {
+        require(amountTokens <= balances[msg.sender]);
+        balances[msg.sender] = balances[msg.sender].subtract(amountTokens);
+        balances[receiver] = balances[receiver].add(amountTokens);
+        emit Transfer(msg.sender, receiver, amountTokens);
         return true;
         
     }
@@ -95,13 +111,9 @@ pragma solidity ^0.8.5;
     }
     
     
-    /*This function transfers the amount of tokens from the 'from' address to the 'to' address.
-    It takes from address, to address and the amount of tokens to be transferred as function parameters.
-    The function returns boolean value which indicates the success or failure of the transaction.
-    */
-    function transferFrom(address owner, address receiver, uint tokens) public returns (bool success) {
+    function transferFrom(address owner, address receiver, uint tokens) public returns (bool) {
         require(tokens <= balances[owner]);    
-        require(tokens <= allowed[owner][msg.sender]);
+        require(tokens <= allowed[owner][receiver]);
     
         balances[owner] = balances[owner].subtract(tokens);
         allowed[owner][msg.sender] = allowed[owner][msg.sender].subtract(tokens);
@@ -111,39 +123,57 @@ pragma solidity ^0.8.5;
     }
     
     function compareDates() private view returns (uint256){
-        // uint startDate = 1514764800; // 2018-01-01 00:00:00
-        // uint endDate = 1518220800; // 2018-02-10 00:00:00
-        
+    
         uint256 currentTime = block.timestamp;
-        uint256 diff = (currentTime - creationTime) / 60 / 60 / 24; 
+        uint256 diff = (currentTime - creationTime).div(60).div(60).div(24); 
         return diff;
     }
     
     function getBonusesByDay(uint256 amount) private view returns (uint256){
         uint256 dayDiff = compareDates();
-        if(dayDiff == 1){
-            return amount + amount * 30 / 100;
+        if(dayDiff <= 1){
+            return amount + amount.mul(30).div(100);
         }else if(dayDiff > 1 && dayDiff < 7){
-            return amount + amount * 15 / 100;
+            return amount + amount.mul(15).div(100);
         }else{
             return amount;
         }
+    }
+    
+    function convertEthToAdx(uint256 amount)private pure returns(uint256){
+        return amount.mul(900);
+    }
+    function convertAdxToEth(uint256 amount)private pure returns(uint256){
+        return amount * 900;
     }
     
     
 }
 
 library SafeMath{
-    function subtract(uint256 a, uint256 b) internal pure returns (uint256) {
+    function subtract(uint a, uint b) internal pure returns (uint) {
       assert(b <= a);
       return a - b;
     }
     
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-      uint256 c = a + b;
+    function add(uint a, uint b) internal pure returns (uint) {
+      uint c = a + b;
       assert(c >= a);
       return c;
     }
+    
+    function mul(uint a, uint b) public pure returns (uint) {
+        uint c = a * b; 
+        assert(a == 0 || c / a == b);
+        return c;
+    } 
+    function div(uint a, uint b) public pure returns (uint) {
+        assert(b > 0);
+        uint c = a / b;
+        return c;
+
+    }
+    
     
 }
 
