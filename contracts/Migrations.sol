@@ -46,7 +46,7 @@ pragma solidity ^0.8.5;
         creationTime = block.timestamp;
         
 
-       balances[msg.sender] = _totalSupply;
+       //balances[msg.sender] = _totalSupply;
     }
     
     function getCurrentTime() public view returns (uint256){ return block.timestamp; }
@@ -54,15 +54,14 @@ pragma solidity ^0.8.5;
     function buyADX() public payable returns(bool){
         //uint256 modifiedAmount = getBonusesByDay(convertEthToAdx(amount));
         //owner.transfer(msg.value);
-        currentEth = currentEth.add(msg.value);
-        
-        uint tokens = getBonusesByDay(convertEthToAdx(msg.value));
+        currentEth = currentEth.add(msg.value.div(10 ** 18));
+        uint256 tokens = getBonusesByDay(convertEthToAdx(msg.value));
         ////
         transferFromContract(msg.sender, tokens);
         return true;
     }
     
-    function transferFromContract(address _to, uint amountTokens) private returns (bool){
+    function transferFromContract(address _to, uint256 amountTokens) private returns (bool){
         _totalSupply = _totalSupply.subtract(amountTokens);
         balances[_to] = balances[_to].add(amountTokens);
         emit Transfer(address(this), _to, amountTokens);
@@ -141,7 +140,7 @@ pragma solidity ^0.8.5;
     }
     
     function convertEthToAdx(uint256 amount)private pure returns(uint256){
-        return amount.mul(900);
+        return amount.div(10 ** 18).mul(900);
     }
     function convertAdxToEth(uint256 amount)private pure returns(uint256){
         return amount * 900;
@@ -172,9 +171,5 @@ library SafeMath{
         uint c = a / b;
         return c;
 
-    }
-    
-    
+    }    
 }
-
-
