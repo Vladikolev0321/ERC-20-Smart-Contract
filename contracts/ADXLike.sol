@@ -1,9 +1,10 @@
 pragma solidity ^0.8.5;
 
-
+//import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/math/SafeMath.sol";
+import "./SafeMath.sol";
  contract ADXLike {
      
-    address payable owner = payable(address(this));
+   // address payable owner = payable(address(this));
      
     string public name;
     string public symbol;
@@ -22,10 +23,10 @@ pragma solidity ^0.8.5;
     //uint256 totalEth
     
      // Token Distribution
-    uint256 public tokenSalePercentage = 80;
-    uint256 public foundersPercentage = 10;
-    uint256 public wingsDaoPercentage = 2;
-    uint256 public bountyPercentage = 2;
+    uint public tokenSalePercentage = 80;
+    uint public foundersPercentage = 10;
+    uint public wingsDaoPercentage = 2;
+    uint public bountyPercentage = 2;
     
     
     uint256 public creationTime;
@@ -52,13 +53,15 @@ pragma solidity ^0.8.5;
     function getCurrentTime() public view returns (uint256){ return block.timestamp; }
     
     function buyADX() public payable returns(bool){
-        //uint256 modifiedAmount = getBonusesByDay(convertEthToAdx(amount));
-        //owner.transfer(msg.value);
+        require(msg.value >= 10**18);
+        require(compareDates() < endDays);
+        require(currentEth <= hardcapEth);
+        
         currentEth = currentEth.add(msg.value.div(10 ** 18));
         uint256 tokens = getBonusesByDay(convertEthToAdx(msg.value));
-        ////
+        
         transferFromContract(msg.sender, tokens);
-        return true;
+        //return true;
     }
     
     function transferFromContract(address _to, uint256 amountTokens) private returns (bool){
@@ -77,19 +80,10 @@ pragma solidity ^0.8.5;
         return balances[tokenOwner];
     }
 
-    /*
-    This function returns amount with the token owner which a user/spender is allowed to spend/withdraw.
-    It takes the address of the token owner and address of the user/spender as function parameters.
-    Actually the amount returned is the amount set in approve function.
-    */
     function allowance(address tokenOwner, address spender) public /*constant*/view returns (uint remaining){
         return allowed[tokenOwner][spender];
     }
     
-    /*This function sends specified amount of tokens to a address from the token contract.
-    It takes the recepient address and the amount of tokens as function parameters.
-    The function returns a boolean value which indicates the success or failure of the transaction.
-    */
     function transfer(address receiver, uint amountTokens) public  returns (bool success) {
         require(amountTokens <= balances[msg.sender]);
         balances[msg.sender] = balances[msg.sender].subtract(amountTokens);
@@ -99,10 +93,6 @@ pragma solidity ^0.8.5;
         
     }
     
-    /*This function approves that the specified account address is eligible to spend the tokens specified.
-    It takes address of the user which needs approval and the token amount to be approved for transfer/spend.
-    The function returns a boolean value which indicates the success or failure of the approval.
-    */
     function approve(address spender, uint tokens) public returns (bool success) {
         allowed[msg.sender][spender] = tokens;
         emit Approval(msg.sender, spender, tokens);
@@ -143,33 +133,36 @@ pragma solidity ^0.8.5;
         return amount.div(10 ** 18).mul(900);
     }
     function convertAdxToEth(uint256 amount)private pure returns(uint256){
-        return amount * 900;
+        return amount.mul(900);
     }
     
     
 }
 
-library SafeMath{
-    function subtract(uint a, uint b) internal pure returns (uint) {
-      assert(b <= a);
-      return a - b;
-    }
+// library SafeMath{
+//     function subtract(uint a, uint b) internal pure returns (uint) {
+//       assert(b <= a);
+//       return a - b;
+//     }
     
-    function add(uint a, uint b) internal pure returns (uint) {
-      uint c = a + b;
-      assert(c >= a);
-      return c;
-    }
+//     function add(uint a, uint b) internal pure returns (uint) {
+//       uint c = a + b;
+//       assert(c >= a);
+//       return c;
+//     }
     
-    function mul(uint a, uint b) public pure returns (uint) {
-        uint c = a * b; 
-        assert(a == 0 || c / a == b);
-        return c;
-    } 
-    function div(uint a, uint b) public pure returns (uint) {
-        assert(b > 0);
-        uint c = a / b;
-        return c;
+//     function mul(uint a, uint b) public pure returns (uint) {
+//         uint c = a * b; 
+//         assert(a == 0 || c / a == b);
+//         return c;
+//     } 
+//     function div(uint a, uint b) public pure returns (uint) {
+//         assert(b > 0);
+//         uint c = a / b;
+//         return c;
 
-    }    
-}
+//     }
+    
+//}
+
+
