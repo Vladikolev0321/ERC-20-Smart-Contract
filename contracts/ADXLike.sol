@@ -43,7 +43,7 @@ import "./SafeMath.sol";
         name = "ADXLike";
         symbol = "ADX";
         //decimals = 18;
-        _totalSupply = 139000000;
+        _totalSupply = 100000000;
         creationTime = block.timestamp;
         
 
