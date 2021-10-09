@@ -4,15 +4,14 @@ pragma solidity ^0.8.5;
 import "./SafeMath.sol";
  contract ADXLike {
      
-   // address payable owner = payable(address(this));
+    using SafeMath for uint256;
+
+    address private contractOwner;
      
+    
     string public name;
     string public symbol;
     //uint8 public decimals;
-
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-    event Transfer(address indexed from, address indexed to, uint tokens);
-
     uint256 private _totalSupply;
     string public startDate = "30th June";
     string public endDate = "30th July";
@@ -25,19 +24,37 @@ import "./SafeMath.sol";
      // Token Distribution
     uint public tokenSalePercentage = 80;
     uint public foundersPercentage = 10;
-    uint public wingsDaoPercentage = 2;
+    uint public discoveryPercentage = 2;
     uint public bountyPercentage = 2;
-    
+    uint public advisorsPercentage = 6;
     
     uint256 public creationTime;
     
     
-
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
-    
-    
-    using SafeMath for uint256;
+
+
+
+    mapping(address => uint256) tokenSupplyAllowance;
+    mapping(address => uint256) foundersSupplyAllowance;
+    mapping(address => uint256) discoverySupplyAllowance;
+    mapping(address => uint256) bountySupplyAllowance;
+    mapping(address => uint256) advisorsSupplyAllowance;
+
+    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
+    event Transfer(address indexed from, address indexed to, uint tokens);
+
+
+    modifier ownable() {
+        require(contractOwner == msg.sender);
+        _;
+    }
+
+    modifier dayLimit(){
+        require(compareDates() >= endDays);
+        _;
+    }
     
     constructor()  {
         name = "ADXLike";
@@ -45,7 +62,7 @@ import "./SafeMath.sol";
         //decimals = 18;
         _totalSupply = 100000000;
         creationTime = block.timestamp;
-        
+        contractOwner = msg.sender;
 
        //balances[msg.sender] = _totalSupply;
     }
@@ -84,7 +101,7 @@ import "./SafeMath.sol";
         return allowed[tokenOwner][spender];
     }
     
-    function transfer(address receiver, uint amountTokens) public  returns (bool success) {
+    function transfer(address receiver, uint amountTokens) public dayLimit returns (bool success) {
         require(amountTokens <= balances[msg.sender]);
         balances[msg.sender] = balances[msg.sender].subtract(amountTokens);
         balances[receiver] = balances[receiver].add(amountTokens);
@@ -100,7 +117,7 @@ import "./SafeMath.sol";
     }
     
     
-    function transferFrom(address owner, address receiver, uint tokens) public returns (bool) {
+    function transferFrom(address owner, address receiver, uint tokens) public dayLimit returns (bool) {
         require(tokens <= balances[owner]);    
         require(tokens <= allowed[owner][receiver]);
     
@@ -129,13 +146,38 @@ import "./SafeMath.sol";
         }
     }
     
-    function convertEthToAdx(uint256 amount)private pure returns(uint256){
+    function convertEthToAdx(uint256 amount) private pure returns(uint256){
         return amount.div(10 ** 18).mul(900);
     }
-    function convertAdxToEth(uint256 amount)private pure returns(uint256){
+
+    function convertAdxToEth(uint256 amount) private pure returns(uint256){
         return amount.mul(900);
     }
     
+    function addTokenSupplyAllowance(address _newAddress, uint256 _amount) public returns(bool) {
+        tokenSupplyAllowance[_newAddress] = _amount;
+        return true;
+    }
+    
+    function addFoundersSupplyAllowance(address _newAddress, uint256 _amount) public ownable returns(bool) {
+        foundersSupplyAllowance[_newAddress] = _amount;
+        return true;
+    }
+    
+    function addBountySupplyAllowance(address _newAddress, uint256 _amount) public ownable returns(bool) {
+        bountySupplyAllowance[_newAddress] = _amount;
+        return true;
+    }
+    function addDiscoverySupplyAllowance(address _newAddress, uint256 _amount) public ownable returns(bool) {
+        discoverySupplyAllowance[_newAddress] = _amount;
+        return true;
+    }
+    
+    function addAdvisorsSupplyAllowance(address _newAddress, uint256 _amount) public ownable returns(bool) {
+        advisorsSupplyAllowance[_newAddress] = _amount;
+        return true;
+    }
+
     
 }
 

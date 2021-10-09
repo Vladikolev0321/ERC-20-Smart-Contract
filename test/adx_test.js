@@ -27,7 +27,7 @@ contract("ADXLike", function(accounts) {
         }).then(async function(instance){
 
             let buyTokens = await instance.buyADX({
-                from: '0x9BC6cE85d1dfD4db1D54F7Ef9F08DfE2f30CecBF',
+                from: '0x837aEe60D177DB1C0190d3E3DDC2550c86FdE645',
                 value: web3.utils.toWei('1', "ether")
             });
             let ethCollected = await instance.currentEth.call();
@@ -42,10 +42,10 @@ contract("ADXLike", function(accounts) {
         }).then(async function(instance){
 
             let buyTokens = await instance.buyADX({
-                from: '0x59Daf1e905f46b0d5648739906fB235e16497F28',
+                from: '0x76e490B6B8FBb6f1DA715646fB9FC84bFbEAED30',
                 value: web3.utils.toWei('1', "ether")
             });
-            let balance = await instance.balanceOf('0x59Daf1e905f46b0d5648739906fB235e16497F28');
+            let balance = await instance.balanceOf('0x76e490B6B8FBb6f1DA715646fB9FC84bFbEAED30');
             
             assert.equal(balance.valueOf(), 1170, "tokens collected should be 1170 ")
         })
