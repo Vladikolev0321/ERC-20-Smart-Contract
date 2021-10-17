@@ -1,7 +1,12 @@
 var ADXLike = artifacts.require("./ADXLike.sol");
 
 contract("ADXLike", function(accounts) {
+    
+    let ADXInstance = null;
 
+    before(async() => {
+        ADXInstance = await ADXLike.deployed();
+    })
 
     it("should have 0 eth in the start", function() {
         return ADXLike.deployed().then(function(instance){
@@ -21,34 +26,58 @@ contract("ADXLike", function(accounts) {
     });
 
 
-    it("buyADX with 1 eth should increase the collectedEth", function() {
+    it("buyADX with 1 eth should increase the collectedEth and the buyer balance by 1170 tokens", function() {
         return ADXLike.deployed().then(function(instance){
             return instance
         }).then(async function(instance){
 
+            let acc = accounts[0];
             let buyTokens = await instance.buyADX({
-                from: '0x837aEe60D177DB1C0190d3E3DDC2550c86FdE645',
+                from: acc,
                 value: web3.utils.toWei('1', "ether")
             });
             let ethCollected = await instance.currentEth.call();
-
-            assert.equal(ethCollected.valueOf(), 1, "eth collected should be 1 after sell")
-        })
-    });
-
-    it("buyADX with 1 eth should increase the buyer balance by 1170 tokens", function() {
-        return ADXLike.deployed().then(function(instance){
-            return instance
-        }).then(async function(instance){
-
-            let buyTokens = await instance.buyADX({
-                from: '0x76e490B6B8FBb6f1DA715646fB9FC84bFbEAED30',
-                value: web3.utils.toWei('1', "ether")
-            });
-            let balance = await instance.balanceOf('0x76e490B6B8FBb6f1DA715646fB9FC84bFbEAED30');
             
-            assert.equal(balance.valueOf(), 1170, "tokens collected should be 1170 ")
+            let balance = await instance.balanceOf(acc);
+
+            assert.equal(ethCollected.valueOf(), 1, "eth collected should be 1 after sell");
+            assert.equal(balance.valueOf(), 1170, "tokens collected should be 1170");
         })
     });
+
+
+    // it("the total supply should be 100000000", async() =>{
+
+    //        let days = await ADXInstance.compareDates();
+
+    //        assert.equal(days, 0, "date compare is 0");
+        
+    // });
+
+
+
+
+    // it("buyADX with 1 eth should increase the buyer balance by 1170 tokens", function() {
+    //     return ADXLike.deployed().then(function(instance){
+    //         return instance
+    //     }).then(async function(instance){
+
+    //         let acc = accounts[1];
+    //         let buyTokens = await instance.buyADX({
+    //             from: acc,
+    //             value: web3.utils.toWei('1', "ether")
+    //         });
+            
+    //         assert.equal(balance.valueOf(), 1170, "tokens collected should be 1170 ");
+    //     })
+    // });
+
+
+    // it("Should throw error when called transfer function when the daylimit hasn't passed", async() => {
+    //     assert.throws(() => ADXInstance.transfer('0x8F13259D1B217CA6Ce158485B590D0d529b4Ac21', 20), Error);
+    // });
+
+
+
 
 });
